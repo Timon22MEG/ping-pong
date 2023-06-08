@@ -1,5 +1,6 @@
 from pygame import *
 
+
 # базовый класс для спрайтов
 class GameSprite(sprite.Sprite):
     """
@@ -55,6 +56,7 @@ class Player(GameSprite):
         if keys[K_s] and self.rect.y < height - 150:
             self.rect.y += self.speed
 
+
 # переменная окончания игры
 finish = False  # когда True, то спрайты перестают работать
 # переменная завершения программы
@@ -67,22 +69,26 @@ height = 500
 # создание окна
 window = display.set_mode((width, height))
 display.set_caption("Ping Pong")
-back = (200, 255, 255)
-window.fill(back)
+img_back = "background.jpg"
+background = transform.scale(image.load(img_back), (width, height))
 clock = time.Clock()
 FPS = 60
 
 # шрифт
 font.init()
 font1 = font.SysFont("Arial", 36)
-lose1 = font1.render('PLAYER 1 LOSE!', True, (180, 0, 0))
-lose2 = font1.render('PLAYER 2 LOSE!', True, (180, 0, 0))
+font2 = font.SysFont("Arial", 20)
+lose_1 = font1.render("Win player 2", True, (180, 0, 0))
+lose_2 = font1.render("Win player 1", True, (180, 0, 0))
 
-racket1 = Player('racket.png', 30, 200, 4, 50, 150)
-racket2 = Player('racket.png', 520, 200, 4, 50, 150)
-ball = GameSprite('tenis_ball.png', 200, 200, 4, 50, 50)
+racket_1 = Player("racket.png", 30, 200, 4, 50, 150)
+racket_2 = Player("racket.png", 520, 200, 4, 50, 150)
+ball = GameSprite("tenis_ball.png", 200, 200, 4, 50, 50)
+
 ball_x = 3
 ball_y = 3
+score_1 = 0
+score_2 = 0
 
 # игровой цикл
 while game:
@@ -92,29 +98,59 @@ while game:
             game = False
 
     if finish != True:
-        window.fill(back)
-        racket1.update_l()
-        racket2.update_r()
+        window.blit(background, (0, 0))
+        text_1 = font2.render("Счёт 1 игрока: " + str(score_1), True, (0, 0, 0))
+        window.blit(text_1, (10, 10))
+
+        text_2 = font2.render("Счёт 2 игрока: " + str(score_2), True, (1, 0, 0))
+        window.blit(text_2, (440, 10))
+        racket_1.update_l()
+        racket_2.update_r()
+
         ball.rect.x += ball_x
         ball.rect.y += ball_y
+
+        if sprite.collide_rect(racket_1, ball):
+            ball_x *= -1
+            ball_x += 0.3
+            if ball_y > 0:
+                ball_y += 0.3
+            else:
+                ball_y -= 0.3
+
+        if sprite.collide_rect(racket_2, ball):
+            ball_x *= -1
+            ball_x -= 0.3
+            if ball_y > 0:
+                ball_y += 0.3
+            else:
+                ball_y -= 0.3
 
         if ball.rect.y < 0 or ball.rect.y > height - 50:
             ball_y *= -1
 
-        if sprite.collide_rect(racket1, ball) or sprite.collide_rect(racket2, ball):
-            ball_x *= -1
-
         if ball.rect.x < 0:
+            window.blit(lose_1, (200, 250))
             finish = True
-            window.blit(lose1, (200, 200))
+            score_2 += 1
 
         if ball.rect.x > width - 50:
+            window.blit(lose_2, (200, 250))
             finish = True
-            window.blit(lose2, (200, 200))
+            score_1 += 1
 
-        racket1.reset()
-        racket2.reset()
+        racket_1.reset()
+        racket_2.reset()
         ball.reset()
+    # перезапуск игры
+    else:
+        finish = False
+        time.delay(3000)
+        racket_1 = Player("racket.png", 30, 200, 4, 50, 150)
+        racket_2 = Player("racket.png", 520, 200, 4, 50, 150)
+        ball = GameSprite("tenis_ball.png", 200, 200, 4, 50, 50)
+        ball_x = 3
+        ball_y = 3
 
     display.update()
     clock.tick(FPS)
